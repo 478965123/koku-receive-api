@@ -27,6 +27,23 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Root endpoint - Welcome message
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    success: true,
+    message: 'Receiving API - QR Validation System',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      items: '/item',
+      verifyQR: 'POST /item/verify-qr',
+      receipts: '/receipt',
+      productSubmissions: '/product-submission',
+    },
+    documentation: 'https://github.com/478965123/koku-receive-api',
+  });
+});
+
 // Health check endpoint
 app.get('/health', (req: Request, res: Response) => {
   res.json({
