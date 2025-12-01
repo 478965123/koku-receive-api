@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: receiving-api
+    env: node
+    region: singapore
+    plan: free
+    rootDir: receiving-api
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      # Add these in Render Dashboard:
+      # - SUPABASE_URL
+      # - SUPABASE_ANON_KEY
+      # - SUPABASE_SERVICE_ROLE_KEY
