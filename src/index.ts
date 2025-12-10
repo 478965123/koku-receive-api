@@ -4,6 +4,7 @@ import dotenv from 'dotenv';
 import receiptRoutes from './routes/receipt.routes';
 import productSubmissionRoutes from './routes/productSubmission.routes';
 import itemRoutes from './routes/item.routes';
+import defectRoutes from './routes/defect.routes';
 
 // Load environment variables
 dotenv.config();
@@ -57,6 +58,7 @@ app.get('/health', (req: Request, res: Response) => {
 app.use('/receipt', receiptRoutes);
 app.use('/product-submission', productSubmissionRoutes);
 app.use('/item', itemRoutes);
+app.use('/defects', defectRoutes);
 
 // 404 handler
 app.use((req: Request, res: Response) => {
@@ -82,6 +84,7 @@ app.listen(PORT, () => {
   console.log(`📦 Receipt API: http://localhost:${PORT}/receipt`);
   console.log(`📦 Product Submission API: http://localhost:${PORT}/product-submission`);
   console.log(`📦 Item API: http://localhost:${PORT}/item`);
+  console.log(`📦 Defect API: http://localhost:${PORT}/defects`);
 });
 
 export default app;
