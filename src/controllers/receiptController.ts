@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { supabase } from '../config/supabase';
+import { supabaseAdmin as supabase } from '../config/supabase';
 import { Receipt } from '../types';
 
 export const createReceipt = async (req: Request, res: Response) => {
