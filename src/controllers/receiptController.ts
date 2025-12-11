@@ -174,7 +174,6 @@ export const getReceipts = async (req: Request, res: Response) => {
         defects (
           id,
           defect_type,
-          quantity,
           severity
         )
       `,

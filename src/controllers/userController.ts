@@ -17,8 +17,8 @@ export const getUsers = async (req: Request, res: Response) => {
         const { data: users, error } = await query;
 
         if (error) {
-            console.error("Error fetching users:", error);
-            return res.status(500).json({ success: false, error: 'Failed to fetch users' });
+            console.error("Error fetching users (Full):", JSON.stringify(error, null, 2));
+            return res.status(500).json({ success: false, error: 'Failed to fetch users', details: error });
         }
 
         return res.status(200).json({ success: true, data: users });
@@ -31,42 +31,55 @@ export const getUsers = async (req: Request, res: Response) => {
 // Create a new user
 export const createUser = async (req: Request, res: Response) => {
     try {
+        console.log("Create User Endpoint Hit with body:", req.body);
         const { employee_code, name, phone, role, username, password } = req.body;
 
+        // Validations
         if (!employee_code || !name) {
-            return res.status(400).json({ success: false, error: 'Employee code and Name are required' });
-        }
-
-        // Check duplicate
-        const { data: existing } = await supabase.from('users').select('id').eq('employee_code', employee_code).single();
-        if (existing) {
-            return res.status(400).json({ success: false, error: 'Employee code already exists' });
+            return res.status(400).json({ success: false, error: 'Employee code and name are required' });
         }
 
         let password_hash = null;
         if (password) {
-            password_hash = await bcrypt.hash(password, SALT_ROUNDS);
+            const salt = await bcrypt.genSalt(10);
+            password_hash = await bcrypt.hash(password, salt);
         }
 
-        const { data: newUser, error } = await supabase.from('users').insert({
-            employee_code,
-            name,
-            phone,
-            role: role || 'staff',
-            username: username || null,
-            password_hash,
-            status: 'active'
-        }).select().single();
+        const { data, error } = await supabase
+            .from('users')
+            .insert({
+                employee_code,
+                name,
+                phone: phone || '',
+                role: role || 'staff',
+                username,
+                password_hash,
+                status: 'active'
+            })
+            .select()
+            .single();
 
         if (error) {
-            console.error("Error creating user:", error);
-            return res.status(500).json({ success: false, error: 'Failed to create user' });
+            console.error("Supabase Error during User Insert:", JSON.stringify(error, null, 2));
+            return res.status(500).json({
+                success: false,
+                error: 'Failed to create user',
+                details: error // Return error to client for easier debugging
+            });
         }
 
-        return res.status(201).json({ success: true, data: newUser });
+        return res.status(201).json({
+            success: true,
+            data,
+            message: 'User created successfully',
+        });
+
     } catch (error) {
-        console.error("Error in createUser:", error);
-        return res.status(500).json({ success: false, error: 'Internal server error' });
+        console.error('Error in createUser:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Internal server error',
+        });
     }
 };
 

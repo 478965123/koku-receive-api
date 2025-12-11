@@ -1,6 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
+import { verifyToken, TokenPayload } from '../utils/jwt';
 
 export interface AuthRequest extends Request {
+  user?: TokenPayload;
   supabaseKey?: string;
 }
 
@@ -9,30 +11,36 @@ export const authMiddleware = (
   res: Response,
   next: NextFunction
 ) => {
-  const apiKey = req.headers['x-supabase-key'] || req.headers['authorization'];
+  const authHeader = req.headers['authorization'];
+  const supabaseKey = req.headers['x-supabase-key'];
 
-  if (!apiKey) {
-    return res.status(401).json({
-      success: false,
-      error: 'Missing API key. Please provide x-supabase-key or Authorization header',
-    });
+  // 1. Try JWT Auth (Bearer Token)
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.split(' ')[1];
+    const decoded = verifyToken(token);
+
+    if (decoded) {
+      req.user = decoded;
+      return next();
+    }
   }
 
-  // Extract Bearer token if present
-  const key = typeof apiKey === 'string'
-    ? apiKey.replace('Bearer ', '')
-    : apiKey.toString().replace('Bearer ', '');
+  // 2. Try Legacy API Key Auth (if needed for system calls)
+  // This helps if you still want to allow scripts with just the API key
+  if (supabaseKey) {
+    const key = typeof supabaseKey === 'string'
+      ? supabaseKey
+      : supabaseKey.toString();
 
-  // Verify against environment variable
-  const validKey = process.env.SUPABASE_ANON_KEY;
-
-  if (key !== validKey) {
-    return res.status(403).json({
-      success: false,
-      error: 'Invalid API key',
-    });
+    const validKey = process.env.SUPABASE_ANON_KEY;
+    if (key === validKey) {
+      req.supabaseKey = key;
+      return next();
+    }
   }
 
-  req.supabaseKey = key;
-  next();
+  return res.status(401).json({
+    success: false,
+    error: 'Unauthorized. Please provide a valid Bearer token.',
+  });
 };

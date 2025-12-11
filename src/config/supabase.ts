@@ -15,6 +15,9 @@ if (!supabaseUrl || !supabaseAnonKey) {
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 // Admin client for operations that bypass RLS
+const hasServiceKey = !!supabaseServiceKey;
+console.log(`[Supabase Config] Service Key loaded: ${hasServiceKey}`);
+
 export const supabaseAdmin = supabaseServiceKey
   ? createClient(supabaseUrl, supabaseServiceKey)
   : supabase;
