@@ -24,6 +24,7 @@ app.use(cors({
     'https://item-receipt.vercel.app',
     'https://receiving-hub.vercel.app',
     'https://receiving-hub.onrender.com',
+    'https://item-receipt-pro.onrender.com',
     // Add production URLs here
   ],
   credentials: true,
