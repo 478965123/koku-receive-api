@@ -5,6 +5,7 @@ import receiptRoutes from './routes/receipt.routes';
 import productSubmissionRoutes from './routes/productSubmission.routes';
 import itemRoutes from './routes/item.routes';
 import defectRoutes from './routes/defect.routes';
+import authRoutes from './routes/auth.routes';
 
 // Load environment variables
 dotenv.config();
@@ -55,6 +56,8 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Routes
+// Routes
+app.use('/auth', authRoutes);
 app.use('/receipt', receiptRoutes);
 app.use('/product-submission', productSubmissionRoutes);
 app.use('/item', itemRoutes);
