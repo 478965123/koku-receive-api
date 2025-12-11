@@ -7,6 +7,8 @@ import itemRoutes from './routes/item.routes';
 import defectRoutes from './routes/defect.routes';
 import authRoutes from './routes/auth.routes';
 
+import userRoutes from './routes/user.routes';
+
 // Load environment variables
 dotenv.config();
 
@@ -41,6 +43,7 @@ app.get('/', (req: Request, res: Response) => {
       verifyQR: 'POST /item/verify-qr',
       receipts: '/receipt',
       productSubmissions: '/product-submission',
+      users: '/users',
     },
     documentation: 'https://github.com/478965123/koku-receive-api',
   });
@@ -56,8 +59,8 @@ app.get('/health', (req: Request, res: Response) => {
 });
 
 // Routes
-// Routes
 app.use('/auth', authRoutes);
+app.use('/users', userRoutes);
 app.use('/receipt', receiptRoutes);
 app.use('/product-submission', productSubmissionRoutes);
 app.use('/item', itemRoutes);

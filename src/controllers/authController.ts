@@ -1,47 +1,86 @@
 import { Request, Response } from 'express';
 import { supabaseAdmin as supabase } from '../config/supabase';
+import bcrypt from 'bcrypt';
 
-// Login with Employee Code
+// Login
 export const login = async (req: Request, res: Response) => {
     try {
-        const { employee_code } = req.body;
+        const { employee_code, username, password } = req.body;
 
-        if (!employee_code) {
-            return res.status(400).json({
-                success: false,
-                error: 'Employee code is required',
+        // Login with Employee Code (Staff)
+        if (employee_code) {
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('employee_code', employee_code)
+                .eq('status', 'active')
+                .single();
+
+            if (error || !user) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Invalid employee code or account inactive',
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                data: {
+                    id: user.id,
+                    employee_code: user.employee_code,
+                    name: user.name,
+                    role: user.role
+                },
             });
         }
 
-        // Check if user exists
-        const { data: user, error } = await supabase
-            .from('users')
-            .select('*')
-            .eq('employee_code', employee_code)
-            .eq('status', 'active')
-            .single();
+        // Login with Username/Password (Admin/Staff)
+        if (username && password) {
+            const { data: user, error } = await supabase
+                .from('users')
+                .select('*')
+                .eq('username', username)
+                .eq('status', 'active')
+                .single();
 
-        if (error || !user) {
-            return res.status(401).json({
-                success: false,
-                error: 'Invalid employee code or account inactive',
+            if (error || !user) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Invalid credentials',
+                });
+            }
+
+            if (!user.password_hash) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Account not set up for password login',
+                });
+            }
+
+            const match = await bcrypt.compare(password, user.password_hash);
+            if (!match) {
+                return res.status(401).json({
+                    success: false,
+                    error: 'Invalid credentials',
+                });
+            }
+
+            return res.status(200).json({
+                success: true,
+                message: 'Login successful',
+                data: {
+                    id: user.id,
+                    employee_code: user.employee_code,
+                    name: user.name,
+                    role: user.role
+                },
             });
         }
 
-        // In a real app, you might issue a JWT here. 
-        // For this simple internal app, returning the User object might be sufficient if trusted.
-        // Ideally, we return a session token or similar.
-        // For simplicity given the scope (Backend Refactor), we return the user profile.
-
-        return res.status(200).json({
-            success: true,
-            message: 'Login successful',
-            data: {
-                id: user.id,
-                employee_code: user.employee_code,
-                name: user.name,
-                role: user.role
-            },
+        return res.status(400).json({
+            success: false,
+            error: 'Employee code OR Username/Password required',
         });
 
     } catch (error) {
